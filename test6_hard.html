@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Провинция 6 (сложная): Умножение степеней с одинаковыми показателями</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-header h1 {
+            color: #FFD700;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .province-badge {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #FFD700;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .problem-statement {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            border-left: 5px solid #1E90FF;
+        }
+        
+        .power-expression {
+            font-family: "Cambria Math", "Latin Modern Math", serif;
+            font-size: 1.5em;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: "Cambria Math", serif;
+            font-size: 1.2em;
+        }
+        
+        .option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #1E90FF;
+        }
+        
+        .option.selected {
+            background: rgba(30, 144, 255, 0.2);
+            border-color: #1E90FF;
+        }
+        
+        .option.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+        
+        .option.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .solution {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #2ecc71;
+        }
+        
+        .solution-step {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-family: "Cambria Math", serif;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-btn.next {
+            background: linear-gradient(135deg, #1E90FF 0%, #000080 100%);
+        }
+        
+        .nav-btn.next:hover {
+            transform: translateX(5px);
+        }
+        
+        .nav-btn.confirm {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #000080;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .nav-btn.confirm:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feedback.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .feedback.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .auto-redirect {
+            text-align: center;
+            margin-top: 20px;
+            color: #FFD700;
+            font-style: italic;
+            display: none;
+        }
+        
+        .timer {
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .formula-hint {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: "Cambria Math", serif;
+        }
+        
+        .selected-answer {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #FFD700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .formula-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-family: "Cambria Math", serif;
+        }
+        .back-btn {
+            background: rgba(231, 76, 60, 0.2);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="window.location.href='map.html?level=hard'">← К карте (сложный уровень)</button>
+        
+        <div class="test-container">
+            <div class="test-header">
+                <div class="province-badge">Провинция 6 (сложная): Умножение степеней с одинаковыми показателями</div>
+                <h1>Свойство степеней: a<sup>n</sup> × b<sup>n</sup> = (a·b)<sup>n</sup></h1>
+            </div>
+            
+            <div class="formula-hint">
+                Используйте свойство: a<sup>n</sup> × b<sup>n</sup> = (a·b)<sup>n</sup>
+            </div>
+            
+            <div class="problem-statement">
+                <h3>Задача:</h3>
+                <p>Упростите выражение, используя свойства степеней:</p>
+                <div class="power-expression">(0.5a<sup>-2</sup>)³ × (4b<sup>3</sup>)³</div>
+                <p>Выберите правильный результат:</p>
+            </div>
+            
+            <div class="selected-answer" id="selectedAnswer">
+                <h4>Вы выбрали:</h4>
+                <div id="selectedOptionText" style="font-family: 'Cambria Math', serif; font-size: 1.2em;"></div>
+                <p>Нажмите "Подтвердить" для проверки ответа</p>
+            </div>
+            
+            <div class="options" id="options">
+                <div class="option" data-correct="true" data-text="8 a⁻⁶ b⁹">
+                    <strong>A)</strong> 8 a⁻⁶ b⁹
+                </div>
+                <div class="option" data-correct="false" data-text="(2 a⁻² b³)³">
+                    <strong>B)</strong> (2 a⁻² b³)³
+                </div>
+                <div class="option" data-correct="false" data-text="8 a⁻⁶ b⁶">
+                    <strong>C)</strong> 8 a⁻⁶ b⁶
+                </div>
+                <div class="option" data-correct="false" data-text="2 a⁻⁶ b⁹">
+                    <strong>D)</strong> 2 a⁻⁶ b⁹
+                </div>
+            </div>
+            
+            <div class="btn-container">
+                <button id="confirmBtn" class="nav-btn confirm" onclick="confirmAnswer()" disabled>
+                    Подтвердить ответ
+                </button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="auto-redirect" id="autoRedirect">
+                <p>Автоматический возврат на карту через <span class="timer" id="timer">5</span> секунд...</p>
+            </div>
+            
+            <div class="btn-container">
+                <button id="showSolutionBtn" class="nav-btn" onclick="showSolution()" style="display: none;">
+                    Показать решение
+                </button>
+                <button id="returnToMapBtn" class="nav-btn next" onclick="returnToMap()" style="display: none;">
+                    Вернуться на карту
+                </button>
+            </div>
+            
+            <div class="solution" id="solution">
+                <h3>Подробное решение:</h3>
+                
+                <div class="solution-step">
+                    <strong>1. Исходное выражение:</strong><br>
+                    (0.5 a⁻²)³ × (4 b³)³
+                </div>
+                
+                <div class="solution-step">
+                    <strong>2. Обратите внимание: показатели одинаковы (равны 3). Применяем свойство aⁿ·bⁿ = (ab)ⁿ:</strong><br>
+                    (0.5 a⁻²)³ × (4 b³)³ = (0.5 a⁻² · 4 b³)³
+                </div>
+                
+                <div class="solution-step">
+                    <strong>3. Перемножаем выражения в скобках:</strong><br>
+                    0.5 · 4 = 2, a⁻² · b³ = a⁻² b³<br>
+                    Получаем (2 a⁻² b³)³
+                </div>
+                
+                <div class="solution-step">
+                    <strong>4. Теперь возводим произведение в куб, используя (ab)ⁿ = aⁿ bⁿ:</strong><br>
+                    2³ = 8, (a⁻²)³ = a⁻⁶, (b³)³ = b⁹
+                </div>
+                
+                <div class="solution-step">
+                    <strong>5. Итог:</strong><br>
+                    8 a⁻⁶ b⁹
+                </div>
+                
+                <div class="solution-step">
+                    <strong>6. Ответ:</strong><br>
+                    8 a⁻⁶ b⁹
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; padding: 20px;">
+                <h3 style="color: #FFD700; margin-bottom: 15px;">📚 Основные свойства степеней:</h3>
+                <div class="formula-grid">
+                    <div class="formula-item">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></div>
+                    <div class="formula-item">a<sup>m</sup> ÷ a<sup>n</sup> = a<sup>m-n</sup></div>
+                    <div class="formula-item">(a<sup>m</sup>)<sup>n</sup> = a<sup>m×n</sup></div>
+                    <div class="formula-item">(ab)<sup>n</sup> = a<sup>n</sup> × b<sup>n</sup></div>
+                    <div class="formula-item">(a/b)<sup>n</sup> = a<sup>n</sup> ÷ b<sup>n</sup></div>
+                    <div class="formula-item">a<sup>-n</sup> = 1 ÷ a<sup>n</sup></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const level = window.location.pathname.includes('_hard') ? 'hard' : 'easy';
+        const storageKey = `powerKingdomProgress_${level}`;
+        
+        let selectedOption = null;
+        let answered = false;
+        let redirectTimer;
+        let countdown = 5;
+        let confirmBtn = document.getElementById('confirmBtn');
+        
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                if (answered) return;
+                
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                this.classList.add('selected');
+                selectedOption = this;
+                
+                document.getElementById('selectedAnswer').style.display = 'block';
+                document.getElementById('selectedOptionText').innerHTML = 
+                    '<strong>' + this.querySelector('strong').textContent + '</strong> ' + 
+                    '<span style="font-size: 1.3em;">' + this.dataset.text + '</span>';
+                
+                confirmBtn.disabled = false;
+                confirmBtn.style.display = 'flex';
+                
+                setTimeout(() => {
+                    confirmBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            });
+        });
+        
+        function confirmAnswer() {
+            if (!selectedOption) {
+                alert('Пожалуйста, выберите вариант ответа!');
+                return;
+            }
+            
+            if (answered) return;
+            
+            answered = true;
+            const isCorrect = selectedOption.dataset.correct === 'true';
+            const feedback = document.getElementById('feedback');
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.add('disabled');
+                opt.style.cursor = 'default';
+            });
+            
+            confirmBtn.style.display = 'none';
+            
+            if (isCorrect) {
+                feedback.innerHTML = `
+                    <h3>✅ Верно!</h3>
+                    <p>Правильно! (0.5a⁻²)³ × (4b³)³ = 8 a⁻⁶ b⁹</p>
+                    <p>Сначала объединяем основания: 0.5·4=2, затем возводим в куб: 2³=8, (a⁻²)³=a⁻⁶, (b³)³=b⁹.</p>
+                    <p>Вы успешно прошли провинцию 6 (сложный уровень)!</p>
+                `;
+                feedback.className = 'feedback correct';
+                
+                saveProgress(6);
+                
+                document.getElementById('returnToMapBtn').style.display = 'flex';
+                document.getElementById('autoRedirect').style.display = 'block';
+                document.getElementById('showSolutionBtn').style.display = 'flex';
+                
+                startCountdown();
+                
+            } else {
+                feedback.innerHTML = `
+                    <h3>❌ Неверно</h3>
+                    <p>Попробуйте еще раз. Помните свойство: aⁿ·bⁿ = (ab)ⁿ, а затем возведите в степень каждый множитель.</p>
+                    <p>Правильный ответ: 8 a⁻⁶ b⁹</p>
+                `;
+                feedback.className = 'feedback incorrect';
+                
+                document.getElementById('showSolutionBtn').style.display = 'flex';
+            }
+            
+            feedback.style.display = 'block';
+            
+            setTimeout(() => {
+                feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+            
+            document.querySelectorAll('.option').forEach(option => {
+                if (option.dataset.correct === 'true') {
+                    option.classList.add('correct');
+                } else if (option === selectedOption) {
+                    option.classList.add('incorrect');
+                }
+            });
+        }
+        
+        function showSolution() {
+            document.getElementById('solution').style.display = 'block';
+            document.getElementById('showSolutionBtn').style.display = 'none';
+            
+            if (redirectTimer) {
+                clearInterval(redirectTimer);
+                document.getElementById('autoRedirect').innerHTML = 
+                    '<p>Автопереход отменен. Нажмите "Вернуться на карту" когда будете готовы.</p>';
+            }
+            
+            setTimeout(() => {
+                document.getElementById('solution').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+        
+        function saveProgress(provinceNumber) {
+            let progress = JSON.parse(localStorage.getItem(storageKey)) || [];
+            if (!progress.includes(provinceNumber)) {
+                progress.push(provinceNumber);
+                localStorage.setItem(storageKey, JSON.stringify(progress));
+            }
+        }
+        
+        function startCountdown() {
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = countdown;
+            
+            redirectTimer = setInterval(function() {
+                countdown--;
+                timerElement.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    returnToMap();
+                }
+            }, 1000);
+        }
+        
+        function returnToMap() {
+            if (redirectTimer) {
+                clearInterval(redirectTimer);
+            }
+            window.location.href = 'map.html?level=' + level;
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && selectedOption && !answered) {
+                confirmAnswer();
+            }
+        });
+        
+        window.onload = function() {
+            let progress = JSON.parse(localStorage.getItem(storageKey)) || [];
+            let order = [1, 2, 3, 4, 5, 6, 7];
+            let currentIndex = progress.length;
+            
+            if (order[currentIndex] !== 6) {
+                let nextProvince = order[currentIndex] || '1';
+                setTimeout(() => {
+                    alert(`Внимание! Вы должны пройти провинции в правильном порядке.\nСейчас доступна провинция ${nextProvince}.`);
+                    window.location.href = 'map.html?level=' + level;
+                }, 500);
+            }
+        };
+    </script>
+</body>
+</html>

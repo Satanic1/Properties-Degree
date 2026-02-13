@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта Королевства Степенной Магии</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .map-visual {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 40px auto;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(75, 0, 130, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(123, 104, 238, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(186, 85, 211, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
+            border-radius: 20px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        
+        .province {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 1.5em;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .province:hover {
+            transform: scale(1.15);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+        }
+        
+        .province.completed {
+            background: rgba(46, 204, 113, 0.3);
+            border-color: #2ecc71;
+        }
+        
+        .province.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .province.current {
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 215, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        }
+        
+        .province-number {
+            font-size: 2em;
+        }
+        
+        .province-operation {
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+        
+        .path {
+            position: absolute;
+            background: rgba(255, 215, 0, 0.5);
+            height: 5px;
+            transform-origin: 0 0;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .path.visible {
+            opacity: 1;
+        }
+        
+        .completion-message {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ecc71;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px auto;
+            max-width: 600px;
+            text-align: center;
+            animation: fadeIn 1s;
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .start-info {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        .order-hint {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .order-step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .order-step.current {
+            background: #FFD700;
+            color: #4B0082;
+        }
+        
+        .power-law {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-family: "Cambria Math", serif;
+            font-size: 1.1em;
+        }
+        
+        .header-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: flex-end; /* кнопки справа */
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-right: 20px; /* отступ от правого края */
+        }
+        
+        .control-btn {
+            background: rgba(231, 76, 60, 0.2);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+        
+        .control-btn:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+        
+        .control-btn.restart {
+            background: rgba(231, 76, 60, 0.2);
+            color: black;
+        }
+        
+        .control-btn.restart:hover {
+            background: rgba(231, 76, 60, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .paths-legend {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #FFD700;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* новые стили для прогресса */
+        .progress-bar {
+            margin-top: 40px; /* опускаем ниже */
+        }
+
+        .progress-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-controls">
+            <div class="control-buttons">
+                <button class="control-btn" onclick="window.location.href='index.html'">
+                    ← На главную
+                </button>
+                <button class="control-btn restart" onclick="confirmRestart()">
+                    🔄 Начать заново
+                </button>
+            </div>
+            <!-- заголовок прогресса удалён из шапки -->
+        </div>
+        
+        <div class="map-container">
+            <h1>Карта Королевства Степенной Магии</h1>
+            <p id="levelDisplay" style="color: #FFD700; font-size: 1.2em;"></p>
+            <p>Нажмите на провинцию, чтобы начать испытание на свойства степеней</p>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="progress-text" id="progressText">Прогресс: 0/7</div>
+            
+            <div class="start-info" id="startInfo">
+                <h3 style="color: #FFD700;">Начните с провинции 1!</h3>
+                <p>Порядок прохождения: <strong>1 → 2 → 3 → 4 → 5 → 6 → 7</strong></p>
+                <div class="order-hint" id="orderHint"></div>
+                <div class="power-law">
+                    Помните: a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup>
+                </div>
+                <p>Текущая доступная провинция подсвечена пульсирующим золотым светом</p>
+            </div>
+            
+            <div class="paths-legend">
+                <p>📜 <strong>Золотые линии</strong> показывают ваш пройденный путь между провинциями</p>
+                <p>Линии появляются только после успешного прохождения провинций</p>
+            </div>
+            
+            <div class="map-visual" id="mapVisual">
+                <!-- Пути между провинциями будут созданы динамически -->
+            </div>
+            
+            <div id="completionMessage" class="completion-message">
+                <h2 style="color: #2ecc71;">🎉 Поздравляем!</h2>
+                <p>Вы успешно прошли все 7 провинций и стали Мастером Степенной Магии!</p>
+                <p>Вы освоили все свойства степеней:</p>
+                <div style="text-align: left; margin: 15px 0;">
+                    <div>✓ Умножение степеней с одинаковыми основаниями</div>
+                    <div>✓ Деление степеней с одинаковыми основаниями</div>
+                    <div>✓ Возведение степени в степень</div>
+                    <div>✓ Возведение произведения и частного в степень</div>
+                    <div>✓ Умножение и деление степеней с одинаковыми показателями</div>
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button onclick="resetProgress()" style="padding: 10px 20px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Начать заново
+                    </button>
+                    <button onclick="window.location.href='index.html'" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid #FFD700; border-radius: 5px; cursor: pointer;">
+                        На главную
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Получаем параметр level из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const level = urlParams.get('level') || 'easy';
+
+        // Отображаем уровень
+        document.getElementById('levelDisplay').innerText = `Уровень: ${level === 'hard' ? 'Сложный' : 'Лёгкий'}`;
+
+        // Массивы провинций для каждого уровня
+        const easyProvinces = [
+            { number: 1, operation: "+", x: 20, y: 50, description: "Сложение: aⁿ × aᵐ = aⁿ⁺ᵐ" },
+            { number: 2, operation: "-", x: 40, y: 20, description: "Вычитание: aⁿ ÷ aᵐ = aⁿ⁻ᵐ" },
+            { number: 3, operation: "+", x: 60, y: 50, description: "Степень степени: (aⁿ)ᵐ = aⁿ×ᵐ" },
+            { number: 4, operation: "×", x: 80, y: 30, description: "Возведение произведения: (ab)ⁿ = aⁿbⁿ" },
+            { number: 5, operation: "÷", x: 20, y: 80, description: "Возведение частного: (a/b)ⁿ = aⁿ/bⁿ" },
+            { number: 6, operation: "×", x: 40, y: 70, description: "Умножение степеней: aⁿ × bⁿ = (ab)ⁿ" },
+            { number: 7, operation: "÷", x: 60, y: 80, description: "Деление степеней: aⁿ ÷ bⁿ = (a/b)ⁿ" }
+        ];
+
+        const hardProvinces = [
+            { number: 1, operation: "+", x: 20, y: 50, description: "Сложение с отрицательными показателями" },
+            { number: 2, operation: "-", x: 40, y: 20, description: "Деление с разными переменными" },
+            { number: 3, operation: "+", x: 60, y: 50, description: "Вложенные степени с отрицательными" },
+            { number: 4, operation: "×", x: 80, y: 30, description: "Произведение в степени с коэффициентами" },
+            { number: 5, operation: "÷", x: 20, y: 80, description: "Частное в отрицательной степени" },
+            { number: 6, operation: "×", x: 40, y: 70, description: "Умножение степеней с дробными основаниями" },
+            { number: 7, operation: "÷", x: 60, y: 80, description: "Деление степеней с отрицательными показателями" }
+        ];
+
+        const provinces = (level === 'hard') ? hardProvinces : easyProvinces;
+        const order = [1, 2, 3, 4, 5, 6, 7];
+
+        // Ключ для localStorage
+        const storageKey = `powerKingdomProgress_${level}`;
+        let completed = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        function initMap() {
+            const mapVisual = document.getElementById('mapVisual');
+            mapVisual.innerHTML = ''; // очищаем перед построением
+
+            provinces.forEach(province => {
+                const provinceEl = document.createElement('div');
+                provinceEl.className = 'province';
+                provinceEl.id = `province${province.number}`;
+                provinceEl.style.left = `${province.x}%`;
+                provinceEl.style.top = `${province.y}%`;
+
+                // Проверяем, пройдена ли провинция
+                if (completed.includes(province.number)) {
+                    provinceEl.classList.add('completed');
+                }
+
+                // Проверяем, является ли текущей (доступной для прохождения)
+                const nextProvince = getNextProvince();
+                if (province.number === nextProvince) {
+                    provinceEl.classList.add('current');
+                }
+
+                // Если провинция ещё не доступна (и не пройдена), блокируем её
+                if (!completed.includes(province.number) && province.number !== nextProvince) {
+                    provinceEl.classList.add('locked');
+                }
+
+                provinceEl.innerHTML = `
+                    <div class="province-number">${province.number}</div>
+                    <div class="province-operation">${province.operation}</div>
+                `;
+
+                // Формируем имя файла теста в зависимости от уровня
+                const testFile = (level === 'hard') ? `test${province.number}_hard.html` : `test${province.number}.html`;
+
+                provinceEl.onclick = () => {
+                    const next = getNextProvince();
+                    if (province.number === next) {
+                        window.location.href = testFile + '?level=' + level; // передаём уровень дальше
+                    } else if (completed.includes(province.number)) {
+                        alert(`Вы уже прошли провинцию ${province.number}: ${province.description}`);
+                    } else {
+                        alert(`Сначала пройдите провинцию ${next}! Порядок: ${order.join(" → ")}`);
+                    }
+                };
+
+                provinceEl.title = `Провинция ${province.number}: ${province.description}`;
+                mapVisual.appendChild(provinceEl);
+            });
+
+            // Создаём пути между пройденными провинциями
+            //createPaths();
+
+            // Обновляем прогресс
+            updateProgress();
+            updateOrderHint();
+
+            // Показываем сообщение о завершении, если пройдены все
+            if (completed.length === 7) {
+                document.getElementById('completionMessage').style.display = 'block';
+                document.getElementById('startInfo').style.display = 'none';
+            }
+        }
+
+        function createPaths() {
+            const mapVisual = document.getElementById('mapVisual');
+            // Очищаем старые пути
+            document.querySelectorAll('.path').forEach(p => p.remove());
+
+            // Создаём пути только между пройденными провинциями
+            for (let i = 0; i < completed.length - 1; i++) {
+                const fromNum = completed[i];
+                const toNum = completed[i + 1];
+                const from = provinces.find(p => p.number === fromNum);
+                const to = provinces.find(p => p.number === toNum);
+
+                if (from && to) {
+                    const path = document.createElement('div');
+                    path.className = 'path visible';
+                    path.id = `path${from.number}to${to.number}`;
+
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+                    const length = Math.sqrt(dx*dx + dy*dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                    path.style.width = `${length}%`;
+                    path.style.left = `${from.x}%`;
+                    path.style.top = `${from.y}%`;
+                    path.style.transform = `rotate(${angle}deg)`;
+
+                    mapVisual.appendChild(path);
+                }
+            }
+        }
+
+        function getNextProvince() {
+            if (completed.length >= order.length) return null;
+            return order[completed.length];
+        }
+
+        function updateProgress() {
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progressText');
+            const percent = (completed.length / 7) * 100;
+
+            progress.style.width = `${percent}%`;
+            progressText.textContent = `Прогресс: ${completed.length}/7`;
+        }
+
+        function updateOrderHint() {
+            const orderHint = document.getElementById('orderHint');
+            orderHint.innerHTML = '';
+
+            order.forEach((num, index) => {
+                const step = document.createElement('div');
+                step.className = 'order-step';
+
+                if (index < completed.length) {
+                    step.style.background = '#2ecc71';
+                    step.textContent = '✓';
+                } else if (index === completed.length) {
+                    step.classList.add('current');
+                    step.textContent = num;
+                } else {
+                    step.textContent = num;
+                }
+
+                orderHint.appendChild(step);
+            });
+        }
+
+        function confirmRestart() {
+            if (confirm('Вы уверены, что хотите начать заново? Весь ваш прогресс будет удалён.')) {
+                resetProgress();
+            }
+        }
+
+        function resetProgress() {
+            localStorage.removeItem(storageKey);
+            completed = [];
+            initMap(); // перестраиваем карту заново
+
+            document.getElementById('completionMessage').style.display = 'none';
+            document.getElementById('startInfo').style.display = 'block';
+
+            showNotification('Прогресс сброшен! Начните с провинции 1.', '#2ecc71');
+        }
+
+        function showNotification(message, color) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${color};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                animation: slideIn 0.5s, fadeOut 0.5s 2.5s;
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { top: 50px; opacity: 0; }
+                    to { top: 100px; opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+                style.remove();
+            }, 3000);
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>
